@@ -2,7 +2,7 @@ import pandas as pd
 import pathlib
 
 p = pathlib.Path('.')
-path_name = {path:path.name.replace('tbl','').replace('.csv', '') for path in list(p.glob('src/data/*.csv'))}
+path_name = {path:path.name.replace('tbl','').replace('.csv', '') for path in list(p.glob('**/*.csv'))}
 tables = {path.name.replace('tbl','').replace('.csv', ''):pd.read_csv(path, index_col=f'{path_name[path]}ID') for path in path_name}
 
 tables['Film']['FilmReleaseDate'] = pd.to_datetime(tables['Film']['FilmReleaseDate'])
