@@ -299,9 +299,9 @@ def update_table(metric, language, director, studio, country, start_date, end_da
 
     df['Male'] = pd.get_dummies(df['ActorGender'])['Male']
 
-    data = df.groupby('FilmName').count().merge(df.groupby('FilmName').sum(),left_index=True,right_index=True)[['ActorName','Male_y']]
-    data['%Male'] = data['Male_y']/data['ActorName']
-    fig = px.histogram(data['%Male'])
+    data = df[['FilmName','ActorName']].groupby('FilmName').count().merge(df[['Male','FilmName']].groupby('FilmName').sum(),left_index=True,right_index=True)[['ActorName','Male']]
+    data['Percent_Male'] = data['Male']/data['ActorName']
+    fig = px.histogram(data['Percent_Male'])
 
     fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#9fa6b7',title_text=f"Repartition of pourcentage of men in the main role")
 
@@ -337,12 +337,12 @@ def update_table(metric, language, director, studio, country, start_date, end_da
 
     df['Male'] = pd.get_dummies(df['ActorGender'])['Male']
 
-    data = df.groupby('FilmReleaseYear').count().merge(df.groupby('FilmReleaseYear').sum(),left_index=True,right_index=True)[['ActorName','Male_y']]
-    data['%Male'] = data['Male_y']/data['ActorName']
+    data = df[['FilmReleaseYear','ActorName']].groupby('FilmReleaseYear').count().merge(df[['Male','FilmReleaseYear']].groupby('FilmReleaseYear').sum(),left_index=True,right_index=True)[['ActorName','Male']]
+    data['Percent_Male'] = data['Male']/data['ActorName']
     
     fig = go.Figure()
-    fig.add_bar(x=data.index,y=data['%Male'], name="% of Male")
-    fig.add_bar(x=data.index,y=1-data['%Male'], name="% of Female")
+    fig.add_bar(x=data.index,y=data['Percent_Male'], name="% of Male")
+    fig.add_bar(x=data.index,y=1-data['Percent_Male'], name="% of Female")
     fig.update_layout(barmode="relative")
 
     fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#9fa6b7',title_text=f"Repartition of pourcentage of men in the main role by year")
@@ -378,7 +378,7 @@ def update_table(metric, language, director, studio, country, start_date, end_da
 
     df = df[df['FilmReleaseDate'].between(start_date, end_date)]
 
-    data= df.groupby('ActorGender').mean()
+    data= df[['ActorGender','FilmBoxOfficeDollars','FilmBudgetDollars']].groupby('ActorGender').mean()
 
     fig = make_subplots(specs=[[{"secondary_y": True}]])
 
