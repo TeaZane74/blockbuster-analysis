@@ -1,4 +1,5 @@
-from dash import Dash, dcc, html, dash_table
+import dash
+from dash import Dash, dcc, html, dash_table,callback
 from dash.dependencies import Input, Output, State
 import dash_bootstrap_components as dbc
 from dash.dash_table.Format import Format, Symbol, Scheme
@@ -7,11 +8,11 @@ from plotly.subplots import make_subplots
 
 
 from utils import generate_dropdown_option
-from app import app
 from data import tables
 
+#dash.register_page(__name__)
 
-def evolution_tab(tables, metric):
+def layout():
     return html.Div(className="container scalable", children=[
         html.Div(
             id="upper-container-evolution",
@@ -33,8 +34,8 @@ def evolution_tab(tables, metric):
                                 html.Label("Select a Metric"),
                                 dcc.Dropdown(
                                     id="metric-select-evolution",
-                                    options=[{"label": i, "value": i} for i in metric],
-                                    value=metric[0],
+                                    options=[{"label": i, "value": i} for i in ['Average','Total']],
+                                    value=['Average','Total'][0],
                                 ),
                             ],
                         ),
@@ -123,55 +124,4 @@ def evolution_tab(tables, metric):
 
         html.Div(children=[dcc.Graph(id="figure-evolution")])
     ])
-
-@app.callback(
-    Output(component_id="evolution-plot", component_property="figure"),
-    Input(component_id="metric-select-evolution", component_property="value"),
-    Input(component_id="language-select-evolution", component_property="value"),
-    Input(component_id="director-select-evolution", component_property="value"),
-    Input(component_id="studio-select-evolution", component_property="value"),
-    Input(component_id="country-select-evolution", component_property="value"),
-    Input(component_id="date-select-evolution", component_property="start_date"),
-    Input(component_id="date-select-evolution", component_property="end_date")
-)
-def update_table(metric, language, director, studio, country, start_date, end_date):
-    
-    df = tables["Film"]
-
-    if language != 'All':
-        df = df[df['FilmLanguageID'] == language]
-
-    if director != 'All':
-        df = df[df['FilmDirectorID'] == director]
-
-    if studio != 'All':
-        df = df[df['FilmStudioID'] == studio]
-
-    if country != 'All':
-        df = df[df['FilmCountryID'] == country]
-
-    df = df[df['FilmReleaseDate'].between(start_date, end_date)]
-
-    if metric == "Average":
-        data = df[['FilmBoxOfficeDollars', 'FilmBudgetDollars', 'FilmBenefits','FilmReleaseYear']].groupby('FilmReleaseYear').mean()
-    if metric == "Total":
-        data = df[['FilmBoxOfficeDollars', 'FilmBudgetDollars', 'FilmBenefits','FilmReleaseYear']].groupby('FilmReleaseYear').sum()
-    
-    data = data.merge(df[['FilmName','FilmReleaseYear']].groupby('FilmReleaseYear').count(), left_index=True, right_index=True)
-
-    fig = make_subplots(specs=[[{"secondary_y": True}]])
-
-    for i in ['FilmBoxOfficeDollars', 'FilmBudgetDollars', 'FilmBenefits']:
-        fig.add_trace(go.Scatter(y=data[i], x=data.index, name=i), secondary_y=False)
-
-    fig.add_trace(go.Scatter(y=data['FilmName'], x=data.index, name='Number of Films', line_color='white'), secondary_y=True)
-
-    fig.update_yaxes(tickprefix="$ ", ticksuffix="M ", secondary_y=False)
-
-    fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#9fa6b7',title_text=f"Global Box Offices/Budgets/Benefits {metric}")
-
-    return fig
-
-
-
 

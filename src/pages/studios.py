@@ -1,4 +1,5 @@
-from dash import Dash, dcc, html, dash_table
+import dash
+from dash import Dash, dcc, html, dash_table,callback
 from dash.dependencies import Input, Output, State
 import dash_bootstrap_components as dbc
 from dash.dash_table.Format import Format, Symbol, Scheme
@@ -7,11 +8,12 @@ from plotly.subplots import make_subplots
 
 
 from utils import generate_dropdown_option
-from app import app
 from data import tables
 
+#dash.register_page(__name__)
 
-def studio_tab(tables, metric):
+
+def layout():
     return html.Div(className="container scalable", children=[
         html.Div(
             id="upper-container-studio",
@@ -34,8 +36,8 @@ def studio_tab(tables, metric):
                                     html.Label("Select a Metric"),
                                     dcc.Dropdown(
                                         id="metric-select-studio",
-                                        options=[{"label": i, "value": i} for i in metric],
-                                        value=metric[0],
+                                        options=[{"label": i, "value": i} for i in ['BoxOfficeDollars', 'BudgetDollars', 'Benefits']],
+                                        value=['BoxOfficeDollars', 'BudgetDollars', 'Benefits'][0],
                                     )]),
 
                                     html.Div(children=[
@@ -132,59 +134,4 @@ def studio_tab(tables, metric):
 
         html.Div(children=[dcc.Graph(id="figure-studio")])
     ])
-
-@app.callback(
-    Output(component_id="studio-plot", component_property="figure"),
-    Input(component_id="metric-select-studio", component_property="value"),
-    Input(component_id="metric-select-studio-2", component_property="value"),
-    Input(component_id="language-select-studio", component_property="value"),
-    Input(component_id="director-select-studio", component_property="value"),
-    Input(component_id="studio-select-studio", component_property="value"),
-    Input(component_id="country-select-studio", component_property="value"),
-    Input(component_id="date-select-studio", component_property="start_date"),
-    Input(component_id="date-select-studio", component_property="end_date")
-)
-def update_table(metric,metric2, language, director, studio, country, start_date, end_date):
-
-    df = tables['Studio'].merge(tables['Film'], right_on='FilmStudioID', left_index=True)
-
-    if language != 'All':
-        df = df[df['FilmLanguageID'] == language]
-
-    if director != 'All':
-        df = df[df['FilmDirectorID'] == director]
-
-    if studio != 'All':
-        df = df[df['FilmStudioID'] == studio]
-
-    if country != 'All':
-        df = df[df['FilmCountryID'] == country]
-
-    df = df[df['FilmReleaseDate'].between(start_date, end_date)]
-    
-    if metric2 == "Average":
-        data = df[['FilmBoxOfficeDollars', 'FilmBudgetDollars', 'FilmBenefits', 'StudioName']].groupby('StudioName').mean().sort_values(f"Film{metric}", ascending=False)
-    elif metric2 == "Total":
-        data = df[['FilmBoxOfficeDollars', 'FilmBudgetDollars', 'FilmBenefits', 'StudioName']].groupby('StudioName').sum().sort_values(f"Film{metric}", ascending=False)
-
-    data = data.merge(df[['FilmName','StudioName']].groupby('StudioName').count(),left_index=True,right_index=True)
-    
-    fig = make_subplots(specs=[[{"secondary_y": True}]])
-
-    fig.add_trace(go.Bar(x=data.index, y=data[f"Film{metric}"].iloc[0:10],name=metric,offsetgroup=1), secondary_y=False)
-
-    fig.add_trace(go.Bar(x=data.index, y=data[f"FilmName"].iloc[0:10],name='Number of Films',offsetgroup=2), secondary_y=True)
-
-    fig.update_yaxes(tickprefix="$ ", ticksuffix="M ", secondary_y=False)
-
-    fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#9fa6b7',title_text=f"Ranking of Studios with the best {metric} {metric2}",   
-    barmode='group',
-    bargap=0.15, # gap between bars of adjacent location coordinates.
-    bargroupgap=0.1 # gap between bars of the same location coordinate.
-    )
-
-    return fig
-
-
-
 
