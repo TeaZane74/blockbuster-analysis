@@ -269,7 +269,7 @@ def update_table(metric,metric2, language, director, studio, country, start_date
 
     return fig
 
-@callback(
+@app.callback(
     Output(component_id="inclusivity-plot-1", component_property="figure"),
     Input(component_id="metric-select-inclusivity", component_property="value"),
     Input(component_id="language-select-inclusivity", component_property="value"),
@@ -281,7 +281,7 @@ def update_table(metric,metric2, language, director, studio, country, start_date
 )
 def update_table(metric, language, director, studio, country, start_date, end_date):
     
-    df = tables['Actor'].merge(tables['Cast'], left_index=True, right_on='CastActorID').merge(tables['Film'], left_on='CastFilmID', right_index=True)
+    df = tables['Actor'][['ActorName','ActorGender']].merge(tables['Cast'][['CastActorID','CastFilmID']], left_index=True, right_on='CastActorID').merge(tables['Film'][['FilmBoxOfficeDollars','FilmBudgetDollars','FilmName','FilmReleaseDate','FilmLanguageID','FilmDirectorID','FilmStudioID','FilmCountryID']], left_on='CastFilmID', right_index=True)
 
     if language != 'All':
         df = df[df['FilmLanguageID'] == language]
@@ -307,7 +307,7 @@ def update_table(metric, language, director, studio, country, start_date, end_da
 
     return fig
     
-@callback(
+@app.callback(
     Output(component_id="inclusivity-plot-2", component_property="figure"),
     Input(component_id="metric-select-inclusivity", component_property="value"),
     Input(component_id="language-select-inclusivity", component_property="value"),
@@ -398,7 +398,7 @@ def update_table(metric, language, director, studio, country, start_date, end_da
     return fig
 
 
-@callback(
+@app.callback(
     Output(component_id="ranking-container", component_property="children"),
     Input(component_id="metric-select", component_property="value"),
     Input(component_id="language-select-ranking", component_property="value"),
@@ -451,7 +451,7 @@ def update_table(metric, language, director, studio, country, start_date, end_da
     )
 
 
-@callback(
+@app.callback(
     Output(component_id="figure-ranking", component_property="figure"),
     Input(component_id="metric-select", component_property="value"),
     Input(component_id="language-select-ranking", component_property="value"),
@@ -495,7 +495,7 @@ def ranking_figure(metric, language, director, studio, country, start_date, end_
     return fig
     
 
-@callback(
+@app.callback(
     Output(component_id="ranking-table-title", component_property='children'),
     Input(component_id="metric-select", component_property="value")
 )
