@@ -10,4 +10,5 @@ tables['Film']['FilmBoxOfficeDollars'] = tables['Film']['FilmBoxOfficeDollars'] 
 tables['Film']['FilmBudgetDollars'] = tables['Film']['FilmBudgetDollars'] /10**6
 tables['Film']['FilmBenefits'] = tables['Film']['FilmBoxOfficeDollars'] - tables['Film']['FilmBudgetDollars']
 tables['Film']['FilmReleaseDate'] = pd.to_datetime(tables['Film']['FilmReleaseDate'])
-tables['Film']['FilmReleaseYear'] = tables['Film']['FilmReleaseDate'].dt.year 
+tables['Film']['FilmReleaseYear'] = tables['Film']['FilmReleaseDate'].dt.year
+tables['Actor']['ActorDOB'] = pd.to_datetime(tables['Actor']['ActorDOB'])
