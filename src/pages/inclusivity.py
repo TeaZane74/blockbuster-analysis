@@ -36,8 +36,8 @@ def layout():
                                 html.Label("Select a Metric"),
                                 dcc.Dropdown(
                                     id="metric-select-inclusivity",
-                                    options=[{"label": i, "value": i} for i in ['BoxOfficeDollars', 'BudgetDollars', 'Benefits']],
-                                    value=['BoxOfficeDollars', 'BudgetDollars', 'Benefits'][0],
+                                    options=[{"label": i, "value": i} for i in ['Actor','Director']],
+                                    value='Actor',
                                 ),
                             ],
                         ),

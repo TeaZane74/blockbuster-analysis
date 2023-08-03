@@ -33,11 +33,11 @@ def layout():
                             id="metric-select-outer-ages",
                             className="control-row-2",
                             children=[
-                                html.Label("Select a Metric"),
+                                html.Label("Select the role"),
                                 dcc.Dropdown(
                                     id="metric-select-ages",
-                                    options=[{"label": i, "value": i} for i in ['BoxOfficeDollars', 'BudgetDollars', 'Benefits']],
-                                    value=['BoxOfficeDollars', 'BudgetDollars', 'Benefits'][0],
+                                    options=[{"label": i, "value": i} for i in ['Actor','Director']],
+                                    value='Actor',
                                 ),
                             ],
                         ),

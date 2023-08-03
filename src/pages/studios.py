@@ -131,7 +131,5 @@ def layout():
                 ),
             ]
         ),
-
-        html.Div(children=[dcc.Graph(id="figure-studio")])
     ])
 
