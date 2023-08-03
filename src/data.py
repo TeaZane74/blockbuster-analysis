@@ -7,7 +7,7 @@ path_name = {path:path.name.replace('tbl','').replace('.csv', '') for path in li
 tables = {path.name.replace('tbl','').replace('.csv', ''):pd.read_csv(path, index_col=f'{path_name[path]}ID') for path in path_name}
 
 
-tables['Film'] = tables[tables['Film'][[['FilmBoxOfficeDollars']]].isna() == False]
+tables['Film'] = tables[tables['Film'][['FilmBoxOfficeDollars']].isna() == False]
 
 tables['Film']['FilmReleaseDate'] = pd.to_datetime(tables['Film']['FilmReleaseDate'])
 tables['Film']['FilmBoxOfficeDollars'] = tables['Film']['FilmBoxOfficeDollars'] /10**6
