@@ -14,6 +14,7 @@ import pages.actors as actors
 import pages.director as dr
 import pages.studios as st
 import pages.inclusivity as inclusivity
+import pages.age as age
 
 from data import tables
 
@@ -58,7 +59,7 @@ app.layout = html.Div(
             dcc.Tab(label='Directors success', children=[dr.layout()], style=tab_style,selected_style=tab_selected_style),
             dcc.Tab(label='Studios success', children=[st.layout()], style=tab_style,selected_style=tab_selected_style),
             dcc.Tab(label='Gender Analysis in Cinema', children=[inclusivity.layout()], style=tab_style,selected_style=tab_selected_style),
-            dcc.Tab(label='Age Analysis in Cinema', children=[], style=tab_style,selected_style=tab_selected_style)
+            dcc.Tab(label='Age Analysis in Cinema', children=[age.layout()], style=tab_style,selected_style=tab_selected_style)
         ], style=tabs_styles)
     ],
 )
@@ -303,7 +304,7 @@ def update_table(metric, language, director, studio, country, start_date, end_da
     data['Percent_Male'] = data['Male']/data['ActorName']
     fig = px.histogram(data['Percent_Male'])
 
-    fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#9fa6b7',title_text=f"Repartition of pourcentage of men in the main role")
+    fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#9fa6b7',title_text=f"Repartition of pourcentage of men in the main character")
 
     return fig
     
@@ -345,7 +346,7 @@ def update_table(metric, language, director, studio, country, start_date, end_da
     fig.add_bar(x=data.index,y=1-data['Percent_Male'], name="% of Female")
     fig.update_layout(barmode="relative")
 
-    fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#9fa6b7',title_text=f"Repartition of pourcentage of men in the main role by year")
+    fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#9fa6b7',title_text=f"Repartition of pourcentage of men in the main character by year")
 
     return fig
     
@@ -502,6 +503,174 @@ def ranking_figure(metric, language, director, studio, country, start_date, end_
 
 def ranking_title(metric):
     return f"Ranking of film by {metric}"
+
+@app.callback(
+    Output(component_id="ages-plot-1", component_property="figure"),
+    Input(component_id="metric-select-ages", component_property="value"),
+    Input(component_id="language-select-ages", component_property="value"),
+    Input(component_id="director-select-ages", component_property="value"),
+    Input(component_id="studio-select-ages", component_property="value"),
+    Input(component_id="country-select-ages", component_property="value"),
+    Input(component_id="date-select-ages", component_property="start_date"),
+    Input(component_id="date-select-ages", component_property="end_date")
+)
+def update_table(metric, language, director, studio, country, start_date, end_date):
+    
+    df = tables['Actor'].merge(tables['Cast'], left_index=True, right_on='CastActorID').merge(tables['Film'], left_on='CastFilmID', right_index=True)
+    df['Age'] = ( df['FilmReleaseDate'] - df['ActorDOB'] ) / 365
+    df['Age'] = df['Age'].dt.days.round(0)
+    df = df[df['Age'].notna() == True]
+
+    if language != 'All':
+        df = df[df['FilmLanguageID'] == language]
+
+    if director != 'All':
+        df = df[df['FilmDirectorID'] == director]
+
+    if studio != 'All':
+        df = df[df['FilmStudioID'] == studio]
+
+    if country != 'All':
+        df = df[df['FilmCountryID'] == country]
+
+    df = df[df['FilmReleaseDate'].between(start_date, end_date)]
+
+    df['-20years'] = df['Age'] < 20
+    df['20-40years'] = df['Age'].between(20,39)
+    df['40-60years'] = df['Age'].between(40,59)
+    df['+60years'] = df['Age'] >= 60
+
+    data= df[['-20years','20-40years','40-60years','+60years','ActorName']]
+    b=1
+    data['AgeCat'] = ''
+    for i in ['-20years','20-40years','40-60years','+60years']:
+        data.loc[data[i]==True,'AgeCat'] = i
+
+    data = data[['AgeCat','ActorName']].groupby('AgeCat')
+
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    fig.add_trace(go.Bar(x=data.index, y=data[f"ActorName"],offsetgroup=1,name="Repartition by age category" ), secondary_y=False)
+
+    fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#9fa6b7',title_text=f"Repartition of pourcentage of men in the main character")
+
+    return fig
+    
+@app.callback(
+    Output(component_id="ages-plot-2", component_property="figure"),
+    Input(component_id="metric-select-ages", component_property="value"),
+    Input(component_id="language-select-ages", component_property="value"),
+    Input(component_id="director-select-ages", component_property="value"),
+    Input(component_id="studio-select-ages", component_property="value"),
+    Input(component_id="country-select-ages", component_property="value"),
+    Input(component_id="date-select-ages", component_property="start_date"),
+    Input(component_id="date-select-ages", component_property="end_date")
+)
+def update_table(metric, language, director, studio, country, start_date, end_date):
+    
+    df = tables['Actor'].merge(tables['Cast'], left_index=True, right_on='CastActorID').merge(tables['Film'], left_on='CastFilmID', right_index=True)
+    df['Age'] = ( df['FilmReleaseDate'] - df['ActorDOB'] ) / 365
+    df['Age'] = df['Age'].dt.days.round(0)
+    df = df[df['Age'].notna() == True]
+
+    if language != 'All':
+        df = df[df['FilmLanguageID'] == language]
+
+    if director != 'All':
+        df = df[df['FilmDirectorID'] == director]
+
+    if studio != 'All':
+        df = df[df['FilmStudioID'] == studio]
+
+    if country != 'All':
+        df = df[df['FilmCountryID'] == country]
+
+    df = df[df['FilmReleaseDate'].between(start_date, end_date)]
+
+    df['-20years'] = df['Age'] < 20
+    df['20-40years'] = df['Age'].between(20,39)
+    df['40-60years'] = df['Age'].between(40,59)
+    df['+60years'] = df['Age'] >= 60
+
+    data = df[['FilmReleaseYear','ActorName']].groupby('FilmReleaseYear').count().merge(df[['-20years','20-40years','40-60years','+60years','FilmReleaseYear']].groupby('FilmReleaseYear').sum(),left_index=True,right_index=True)[['ActorName','-20years','20-40years','40-60years','+60years']]
+    
+    for i in ['-20years','20-40years','40-60years','+60years']:
+        data[i] = data[i]/data['ActorName']
+
+
+    fig = go.Figure()
+    fig.add_bar(x=data.index,y=data['-20years'], name="% of -20 years old")
+    fig.add_bar(x=data.index,y=data['20-40years'], name="% of 20-40 years old")
+    fig.add_bar(x=data.index,y=data['40-60years'], name="% of 40-60 years old")
+    fig.add_bar(x=data.index,y=data['+60years'], name="% of +60 years old")   
+    fig.update_layout(barmode="relative")
+
+    fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#9fa6b7',title_text=f"Repartition of the age category in the main character by year")
+
+    return fig
+    
+    
+@app.callback(
+    Output(component_id="ages-plot-3", component_property="figure"),
+    Input(component_id="metric-select-ages", component_property="value"),
+    Input(component_id="language-select-ages", component_property="value"),
+    Input(component_id="director-select-ages", component_property="value"),
+    Input(component_id="studio-select-ages", component_property="value"),
+    Input(component_id="country-select-ages", component_property="value"),
+    Input(component_id="date-select-ages", component_property="start_date"),
+    Input(component_id="date-select-ages", component_property="end_date")
+)
+def update_table(metric, language, director, studio, country, start_date, end_date):
+    
+    df = tables['Actor'].merge(tables['Cast'], left_index=True, right_on='CastActorID').merge(tables['Film'], left_on='CastFilmID', right_index=True)
+    df['Age'] = ( df['FilmReleaseDate'] - df['ActorDOB'] ) / 365
+    df['Age'] = df['Age'].dt.days.round(0)
+    df = df[df['Age'].notna() == True]
+    
+    if language != 'All':
+        df = df[df['FilmLanguageID'] == language]
+
+    if director != 'All':
+        df = df[df['FilmDirectorID'] == director]
+
+    if studio != 'All':
+        df = df[df['FilmStudioID'] == studio]
+
+    if country != 'All':
+        df = df[df['FilmCountryID'] == country]
+
+    df = df[df['FilmReleaseDate'].between(start_date, end_date)]
+
+    df['-20years'] = df['Age'] < 20
+    df['20-40years'] = df['Age'].between(20,39)
+    df['40-60years'] = df['Age'].between(40,59)
+    df['+60years'] = df['Age'] >= 60
+
+    data= df[['-20years','20-40years','40-60years','+60years','FilmBoxOfficeDollars','FilmBudgetDollars']]
+
+    b = 1
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+
+    data['AgeCat'] = ''
+    for i in ['-20years','20-40years','40-60years','+60years']:
+        data.loc[data[i]==True,'AgeCat'] = i
+
+    data= data[['AgeCat','FilmBoxOfficeDollars','FilmBudgetDollars']].groupby('AgeCat').mean()
+
+    
+    fig.add_trace(go.Bar(x=data.index, y=data[f"FilmBoxOfficeDollars"],offsetgroup=1,name="BoxOffice Dollars" ), secondary_y=False)
+
+    fig.add_trace(go.Bar(x=data.index, y=data[f"FilmBudgetDollars"],offsetgroup=2, name="Budget Dollars" ), secondary_y=False)
+
+    fig.update_yaxes(tickprefix="$ ", ticksuffix="M ", secondary_y=False)
+
+    fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#9fa6b7',title_text=f"Difference between age category",   
+    barmode='group',
+    bargap=0.15, # gap between bars of adjacent location coordinates.
+    bargroupgap=0.1 # gap between bars of the same location coordinate.
+    )
+
+
+    return fig
 
 
 
